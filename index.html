@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<!--
+  抱抱宝宝 · 给最喜欢的人
+  ------------------------------------------------------------------
+  完全独立的单文件网页：不联网、不加载外部资源，双击就能打开。
+
+  想改文案：搜 messages / letter 里的文字
+  想改标题：搜 class="title"
+  想改颜色：搜 :root 里的 --rose / --rose-deep
+  想改抱抱幅度：搜 animateTransform，改 values="-22;48;-22"
+  想改表情：搜「大眼睛」「小嘴」「腮红」「呆毛」
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#ffe1ee" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>💗</text></svg>" />
+<title>抱抱宝宝</title>
+<style>
+  :root{
+    --rose:#e0538a;
+    --rose-deep:#c93a70;
+    --ink:#8f3557;
+    --line:#ff9dbf;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    overflow:hidden;
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif;
+    background:
+      radial-gradient(120% 70% at 50% -10%, #ffffff 0%, rgba(255,255,255,0) 55%),
+      radial-gradient(90% 60% at 12% 102%, #ffd0e4 0%, rgba(255,208,228,0) 62%),
+      radial-gradient(90% 60% at 92% 92%, #ffc0da 0%, rgba(255,192,218,0) 60%),
+      linear-gradient(165deg,#fff6fa 0%,#ffe1ee 46%,#ffc9de 100%);
+    color:var(--ink);
+    -webkit-tap-highlight-color:transparent;
+    -webkit-touch-callout:none;
+    user-select:none;-webkit-user-select:none;
+    touch-action:manipulation;
+  }
+
+  /* 背景飘浮爱心 */
+  .bg-hearts{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:1;}
+  .bh{
+    position:absolute;bottom:-12vh;opacity:0;white-space:nowrap;
+    animation-name:rise;animation-timing-function:linear;animation-iteration-count:infinite;
+    will-change:transform,opacity;
+  }
+  @keyframes rise{
+    0%  {transform:translate3d(0,0,0) scale(.7);opacity:0;}
+    12% {opacity:.8;}
+    85% {opacity:.45;}
+    100%{transform:translate3d(var(--dx,0px),-120vh,0) scale(1.05);opacity:0;}
+  }
+
+  /* 主布局 */
+  .app{
+    position:relative;z-index:2;
+    min-height:100vh;min-height:100svh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:calc(14px + env(safe-area-inset-top)) 22px calc(12px + env(safe-area-inset-bottom));
+    text-align:center;
+    animation:fadeUp .9s ease both;
+  }
+  @keyframes fadeUp{
+    from{opacity:0;transform:translateY(10px);}
+    to  {opacity:1;transform:translateY(0);}
+  }
+  .kicker{
+    margin:0 0 2px;font-size:11px;letter-spacing:.34em;color:#d4759a;opacity:.9;
+    text-transform:uppercase;
+  }
+  .title{
+    margin:4px 0 0;font-size:clamp(28px,8.4vw,40px);font-weight:800;letter-spacing:.16em;
+    color:var(--rose-deep);
+    text-shadow:0 1px 0 #fff,0 8px 22px rgba(201,58,112,.22);
+  }
+
+  /* 舞台 / 宝宝 */
+  .stage{position:relative;width:min(70vw,310px);margin:2px 0 0;cursor:pointer;}
+  .stage.tight{animation:tight .85s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes tight{
+    0%  {transform:scale(1);}
+    35% {transform:scale(1.1) rotate(-2deg);}
+    65% {transform:scale(.97) rotate(2deg);}
+    100%{transform:scale(1);}
+  }
+  .baby{
+    display:block;width:100%;height:auto;
+    filter:drop-shadow(0 18px 26px rgba(214,79,126,.20));
+    animation:sway 5.6s ease-in-out infinite;
+    transform-origin:50% 88%;
+  }
+  @keyframes sway{
+    0%,100%{transform:rotate(-1.2deg);}
+    50%    {transform:rotate(1.2deg);}
+  }
+  .stage.pop .baby{animation:pop .55s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes pop{
+    0%  {transform:scale(1);}
+    45% {transform:scale(1.07) rotate(-2deg);}
+    100%{transform:scale(1);}
+  }
+  .hug-heart{transform-box:fill-box;transform-origin:center;animation:beat 1.7s ease-in-out infinite;}
+  @keyframes beat{
+    0%,100%{transform:scale(1);}
+    28%    {transform:scale(1.15);}
+    44%    {transform:scale(1.03);}
+    60%    {transform:scale(1.1);}
+  }
+
+  .float-heart{
+    position:absolute;font-size:21px;pointer-events:none;
+    filter:drop-shadow(0 3px 5px rgba(255,110,165,.35));
+    animation:bob 3.4s ease-in-out infinite;
+  }
+  .fh1{left:1%;top:14%;}
+  .fh2{right:-2%;top:32%;font-size:17px;animation-delay:-1.2s;}
+  .fh3{right:6%;top:64%;font-size:19px;animation-delay:-2.3s;}
+  .fh4{left:8%;top:56%;font-size:15px;animation-delay:-.6s;}
+  @keyframes bob{
+    0%,100%{transform:translateY(0) rotate(-7deg);}
+    50%    {transform:translateY(-13px) rotate(7deg);}
+  }
+
+  /* 文案 / 计数 / 按钮 */
+  .msg{
+    margin:6px 0 0;min-height:1.7em;
+    font-size:clamp(15px,4.3vw,17px);color:#a8456a;letter-spacing:.02em;
+    transition:opacity .18s ease;
+  }
+  .count{
+    margin:0;height:26px;line-height:26px;
+    font-size:12px;color:#c2567f;letter-spacing:.04em;
+    opacity:0;transform:translateY(4px);transition:opacity .3s ease,transform .3s ease;
+  }
+  .count.show{opacity:1;transform:none;}
+  .count b{font-size:15px;color:#e0538a;margin:0 2px;}
+  .btn{
+    appearance:none;-webkit-appearance:none;border:0;outline:none;cursor:pointer;
+    margin-top:6px;padding:14px 40px;border-radius:999px;
+    font-size:17px;font-weight:700;font-family:inherit;color:#fff;letter-spacing:.06em;
+    background:linear-gradient(135deg,#ff8ab5 0%,#ff4f86 60%,#f43c79 100%);
+    box-shadow:0 12px 26px rgba(255,79,134,.38),inset 0 1px 0 rgba(255,255,255,.45);
+    animation:btnPulse 2.4s ease-in-out infinite;
+    transition:transform .12s ease;
+  }
+  .btn:active{transform:scale(.95);}
+  @keyframes btnPulse{
+    0%,100%{box-shadow:0 12px 26px rgba(255,79,134,.38),inset 0 1px 0 rgba(255,255,255,.45);}
+    50%    {box-shadow:0 14px 34px rgba(255,79,134,.55),inset 0 1px 0 rgba(255,255,255,.45);}
+  }
+  .foot{margin:10px 0 0;font-size:11px;color:#cf86a6;letter-spacing:.05em;display:flex;align-items:center;gap:4px;}
+  .letter-btn{
+    appearance:none;border:0;background:none;cursor:pointer;padding:0 2px;
+    font-size:15px;line-height:1;filter:drop-shadow(0 2px 3px rgba(255,120,170,.3));
+    transition:transform .2s ease;
+  }
+  .letter-btn:active{transform:scale(.85);}
+
+  /* 情书卡片 */
+  .letter{
+    position:fixed;inset:0;z-index:20;display:flex;align-items:flex-end;justify-content:center;
+    background:rgba(255,214,231,.42);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    opacity:0;pointer-events:none;transition:opacity .32s ease;
+  }
+  .letter.open{opacity:1;pointer-events:auto;}
+  .letter-card{
+    width:min(92vw,380px);margin-bottom:calc(16px + env(safe-area-inset-bottom));
+    background:#fff8fc;border:1.5px solid #ffd3e5;border-radius:26px;
+    padding:22px 24px 16px;text-align:center;
+    box-shadow:0 -10px 40px rgba(214,79,126,.28),inset 0 1px 0 #fff;
+    transform:translateY(112%);transition:transform .5s cubic-bezier(.22,1.25,.36,1);
+  }
+  .letter.open .letter-card{transform:translateY(0);}
+  .letter-seal{font-size:32px;line-height:1;margin-bottom:4px;filter:drop-shadow(0 4px 8px rgba(255,110,165,.35));}
+  .letter-card h2{
+    margin:0 0 8px;font-size:19px;letter-spacing:.18em;color:var(--rose-deep);font-weight:800;
+  }
+  .letter-card p{
+    margin:0 0 8px;font-size:14px;line-height:1.85;color:#a8456a;letter-spacing:.02em;
+  }
+  .letter-card .sign{
+    margin:6px 0 12px;font-size:13px;color:#c2567f;text-align:right;letter-spacing:.06em;
+  }
+  .letter-close{
+    appearance:none;border:0;cursor:pointer;width:100%;padding:12px 0;border-radius:999px;
+    font-size:15px;font-weight:700;color:#fff;font-family:inherit;letter-spacing:.1em;
+    background:linear-gradient(135deg,#ff8ab5,#ff4f86);
+    box-shadow:0 8px 18px rgba(255,79,134,.32);
+  }
+  .letter-close:active{transform:scale(.98);}
+
+  /* 点击爱心迸发 */
+  .burst{
+    position:fixed;z-index:30;pointer-events:none;will-change:transform,opacity;
+    animation-name:burst;animation-timing-function:cubic-bezier(.17,.67,.32,1.1);
+    animation-fill-mode:forwards;
+  }
+  @keyframes burst{
+    0%  {transform:translate(-50%,-50%) scale(.3) rotate(0deg);opacity:0;}
+    15% {opacity:1;}
+    100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1) rotate(var(--rot,0deg));opacity:0;}
+  }
+
+  @media (max-height:720px){
+    .stage{width:min(50vw,200px);}
+    .title{font-size:26px;}
+    .btn{padding:11px 30px;font-size:16px;}
+    .kicker{display:none;}
+    .count{height:22px;line-height:22px;}
+    .foot{margin-top:6px;}
+  }
+  @media (min-width:520px){
+    .stage{width:310px;}
+  }
+</style>
+</head>
+<body>
+  <div class="bg-hearts" id="bgHearts" aria-hidden="true"></div>
+
+  <main class="app">
+    <p class="kicker">To my favorite one</p>
+    <h1 class="title">抱 抱 宝 宝</h1>
+
+    <div class="stage" id="stage" role="button" tabindex="0" aria-label="点我抱抱，长按抱紧">
+      <svg class="baby" viewBox="0 0 320 360" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity=".55"/>
+            <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="skin" cx="42%" cy="30%" r="80%">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="100%" stop-color="#ffe9f3"/>
+          </radialGradient>
+          <radialGradient id="suit" cx="40%" cy="25%" r="85%">
+            <stop offset="0%" stop-color="#ffd3e4"/>
+            <stop offset="100%" stop-color="#ffabc9"/>
+          </radialGradient>
+          <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="2.6"/>
+          </filter>
+        </defs>
+
+        <ellipse cx="160" cy="350" rx="76" ry="8" fill="#e07ba5" opacity=".15"/>
+        <circle cx="160" cy="200" r="150" fill="url(#glow)"/>
+
+        <!-- 身体 -->
+        <g class="body">
+          <ellipse cx="160" cy="278" rx="76" ry="60" fill="url(#suit)" stroke="#ff9dbf" stroke-width="2.5"/>
+          <ellipse cx="160" cy="288" rx="38" ry="40" fill="#fff6fa" opacity=".95"/>
+          <ellipse cx="128" cy="334" rx="18" ry="12" fill="url(#suit)" stroke="#ff9dbf" stroke-width="2.5"/>
+          <ellipse cx="192" cy="334" rx="18" ry="12" fill="url(#suit)" stroke="#ff9dbf" stroke-width="2.5"/>
+        </g>
+
+        <!-- 左手臂 -->
+        <g class="arm-l" transform="translate(94 240)">
+          <g>
+            <rect x="-15" y="-6" width="30" height="68" rx="15" fill="url(#suit)" stroke="#ff9dbf" stroke-width="2.5"/>
+            <circle cx="0" cy="62" r="15" fill="#fff1f7" stroke="#ff9dbf" stroke-width="2.5"/>
+            <animateTransform attributeName="transform" type="rotate"
+              values="-22;48;-22" dur="2.4s" repeatCount="indefinite"
+              calcMode="spline" keyTimes="0;0.5;1"
+              keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/>
+          </g>
+        </g>
+
+        <!-- 右手臂 -->
+        <g class="arm-r" transform="translate(226 240)">
+          <g>
+            <rect x="-15" y="-6" width="30" height="68" rx="15" fill="url(#suit)" stroke="#ff9dbf" stroke-width="2.5"/>
+            <circle cx="0" cy="62" r="15" fill="#fff1f7" stroke="#ff9dbf" stroke-width="2.5"/>
+            <animateTransform attributeName="transform" type="rotate"
+              values="22;-48;22" dur="2.4s" repeatCount="indefinite"
+              calcMode="spline" keyTimes="0;0.5;1"
+              keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/>
+          </g>
+        </g>
+
+        <!-- 怀里的小爱心 -->
+        <g class="hug-heart">
+          <path d="M160 272 c-4 -9 -20 -11 -20 2 c0 10 12 18 20 25 c8 -7 20 -15 20 -25 c0 -13 -16 -11 -20 -2 z" fill="#ff5f96"/>
+          <ellipse cx="152" cy="279" rx="4" ry="3" fill="#fff" opacity=".55"/>
+        </g>
+
+        <!-- 脑袋 -->
+        <g class="head">
+          <circle cx="74" cy="150" r="15" fill="url(#suit)" stroke="#ff9dbf" stroke-width="2.5"/>
+          <circle cx="246" cy="150" r="15" fill="url(#suit)" stroke="#ff9dbf" stroke-width="2.5"/>
+          <ellipse cx="160" cy="142" rx="88" ry="84" fill="url(#skin)" stroke="#ffd9e8" stroke-width="2.5"/>
+
+          <!-- 呆毛 -->
+          <path d="M154 60 c-2 -20 12 -30 26 -26 c10 3 12 14 4 19 c-6 4 -13 -1 -11 -8"
+                fill="none" stroke="#c08a5f" stroke-width="7" stroke-linecap="round"/>
+
+          <!-- 小爱心发夹 -->
+          <path d="M226 86 c-2 -4 -8 -5 -8 1 c0 4 5 8 8 10 c3 -2 8 -6 8 -10 c0 -6 -6 -5 -8 -1 z"
+                fill="#ff5f96" stroke="#ff9dbf" stroke-width="1.5"/>
+
+          <!-- 大眼睛 -->
+          <ellipse cx="126" cy="140" rx="12" ry="15" fill="#4b2a1f"/>
+          <circle cx="122" cy="134" r="4.6" fill="#fff"/>
+          <circle cx="130" cy="146" r="2.2" fill="#fff" opacity=".85"/>
+          <ellipse cx="194" cy="140" rx="12" ry="15" fill="#4b2a1f"/>
+          <circle cx="190" cy="134" r="4.6" fill="#fff"/>
+          <circle cx="198" cy="146" r="2.2" fill="#fff" opacity=".85"/>
+
+          <!-- 腮红 -->
+          <ellipse cx="106" cy="176" rx="16" ry="9" fill="#ff9dbf" opacity=".6" filter="url(#soft)"/>
+          <ellipse cx="214" cy="176" rx="16" ry="9" fill="#ff9dbf" opacity=".6" filter="url(#soft)"/>
+
+          <!-- 小嘴 -->
+          <ellipse cx="160" cy="180" rx="8.5" ry="9" fill="#d9537a"/>
+          <ellipse cx="160" cy="185" rx="5" ry="3.5" fill="#ff92ae"/>
+
+          <!-- 额头高光 -->
+          <ellipse cx="126" cy="96" rx="24" ry="13" fill="#fff" opacity=".5" transform="rotate(-18 126 96)"/>
+        </g>
+
+        <!-- 闪烁小星星 -->
+        <path d="M52 104 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3 z" fill="#ffd1e3" opacity=".9"/>
+        <path d="M270 96 l2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 6 -2 z" fill="#ffd1e3" opacity=".9"/>
+      </svg>
+
+      <span class="float-heart fh1">💗</span>
+      <span class="float-heart fh2">🩷</span>
+      <span class="float-heart fh3">💕</span>
+      <span class="float-heart fh4">✨</span>
+    </div>
+
+    <p class="msg" id="msg">宝宝，让我抱抱你～</p>
+    <p class="count" id="count">已经抱了 <b id="countNum">0</b> 次啦</p>
+    <button class="btn" id="hugBtn" type="button">抱抱我 🤗</button>
+    <p class="foot">每天都要抱抱你 · <button class="letter-btn" id="openLetter" type="button" aria-label="打开情书">💌</button></p>
+  </main>
+
+  <div class="letter" id="letter" aria-hidden="true">
+    <div class="letter-card">
+      <div class="letter-seal">💌</div>
+      <h2>写 给 你</h2>
+      <p>
+        认识你以后，连风都是甜的。<br>
+        想每天早上抱你一下，晚上再抱一下，<br>
+        难过的时候抱着，开心的时候也要抱着。
+      </p>
+      <p>你是我最想抱紧的那个人。</p>
+      <p class="sign">—— 抱抱宝宝</p>
+      <button class="letter-close" id="letterClose" type="button">收下啦</button>
+    </div>
+  </div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* 背景飘浮爱心 */
+  var bg = document.getElementById('bgHearts');
+  var symbols = ['💗','🩷','❤️','💕','✨','💞'];
+  for (var i = 0; i < 16; i++) {
+    var h = document.createElement('span');
+    h.className = 'bh';
+    h.textContent = symbols[i % symbols.length];
+    h.style.left = (Math.random() * 100).toFixed(2) + 'vw';
+    h.style.fontSize = (11 + Math.random() * 18).toFixed(1) + 'px';
+    h.style.animationDuration = (10 + Math.random() * 9).toFixed(2) + 's';
+    h.style.animationDelay = (-Math.random() * 18).toFixed(2) + 's';
+    h.style.setProperty('--dx', (Math.random() * 90 - 45).toFixed(1) + 'px');
+    bg.appendChild(h);
+  }
+
+  /* 爱心迸发 */
+  var emojis = ['❤️','💗','🩷','💕','✨','💞'];
+  function burst(x, y, n) {
+    n = n || 14;
+    for (var i = 0; i < n; i++) {
+      var s = document.createElement('span');
+      s.className = 'burst';
+      s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      var a = Math.random() * Math.PI * 2;
+      var d = 70 + Math.random() * 130;
+      s.style.left = x + 'px';
+      s.style.top = y + 'px';
+      s.style.fontSize = (13 + Math.random() * 16).toFixed(1) + 'px';
+      s.style.setProperty('--dx', (Math.cos(a) * d).toFixed(1) + 'px');
+      s.style.setProperty('--dy', (Math.sin(a) * d - 30).toFixed(1) + 'px');
+      s.style.setProperty('--rot', (Math.random() * 120 - 60).toFixed(0) + 'deg');
+      s.style.animationDuration = (0.75 + Math.random() * 0.5).toFixed(2) + 's';
+      document.body.appendChild(s);
+      (function(el){
+        window.setTimeout(function(){ if (el.parentNode) el.parentNode.removeChild(el); }, 1500);
+      })(s);
+    }
+  }
+
+  /* 情话 */
+  var messages = [
+    '宝宝，让我抱抱你～',
+    '抱紧一点点，再紧一点点',
+    '抱着你的时候，心跳好吵',
+    '今天也超级超级喜欢你',
+    '要一直一直这样抱着',
+    '你是我最软的那一块',
+    '抱抱可以治好所有不开心',
+    '有你在，哪里都是甜的'
+  ];
+  var tightMessages = ['抱紧你，不许跑！', '再抱紧一点…', '抱到你说喜欢我为止 😝', '这次抱得久一点'];
+  var msgEl = document.getElementById('msg');
+  var stage = document.getElementById('stage');
+  var btn = document.getElementById('hugBtn');
+  var countEl = document.getElementById('count');
+  var countNum = document.getElementById('countNum');
+  var letter = document.getElementById('letter');
+  var letterOpened = false;
+
+  var idx = 0;
+  var hugs = 0;
+  try { hugs = parseInt(localStorage.getItem('hugBabyCount') || '0', 10) || 0; } catch(e) { hugs = 0; }
+  countNum.textContent = hugs;
+  if (hugs > 0) countEl.classList.add('show');
+
+  function setMsg(text) {
+    msgEl.style.opacity = '0';
+    window.setTimeout(function(){
+      msgEl.textContent = text;
+      msgEl.style.opacity = '1';
+    }, 150);
+  }
+
+  function addHug(n) {
+    hugs += n;
+    countNum.textContent = hugs;
+    countEl.classList.add('show');
+    try { localStorage.setItem('hugBabyCount', String(hugs)); } catch(e) {}
+  }
+
+  function centerOf(el) {
+    var r = el.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height * 0.56 };
+  }
+
+  function swipe(n) {
+    var c = centerOf(stage);
+    burst(c.x, c.y, n);
+    stage.classList.remove('pop');
+    void stage.offsetWidth;
+    stage.classList.add('pop');
+    if (navigator.vibrate) { try { navigator.vibrate(18); } catch(e){} }
+  }
+
+  /* 普通抱抱 */
+  function hug() {
+    swipe(14);
+    idx = (idx + 1) % messages.length;
+    setMsg(messages[idx]);
+    addHug(1);
+    if (hugs >= 3 && !letterOpened) {
+      var saved = '';
+      try { saved = localStorage.getItem('hugBabyLetter') || ''; } catch(e) {}
+      if (saved !== '1') window.setTimeout(openLetter, 500);
+    }
+  }
+
+  /* 长按：抱紧 */
+  function tightHug() {
+    swipe(26);
+    stage.classList.remove('tight');
+    void stage.offsetWidth;
+    stage.classList.add('tight');
+    setMsg(tightMessages[Math.floor(Math.random() * tightMessages.length)]);
+    addHug(2);
+    if (navigator.vibrate) { try { navigator.vibrate([12, 40, 24]); } catch(e){} }
+  }
+
+  /* 情书 */
+  function openLetter() {
+    if (letter.classList.contains('open')) return;
+    letter.classList.add('open');
+    letter.setAttribute('aria-hidden', 'false');
+    letterOpened = true;
+    try { localStorage.setItem('hugBabyLetter', '1'); } catch(e) {}
+    swipe(20);
+  }
+  function closeLetter() {
+    letter.classList.remove('open');
+    letter.setAttribute('aria-hidden', 'true');
+  }
+
+  document.getElementById('letterClose').addEventListener('click', closeLetter);
+  document.getElementById('openLetter').addEventListener('click', openLetter);
+  letter.addEventListener('click', function(e){ if (e.target === letter) closeLetter(); });
+
+  /* 按钮 / 点击 */
+  btn.addEventListener('click', function(){ hug(); });
+
+  var pressTimer = null, longFired = false;
+  function clearPress() { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } }
+
+  stage.addEventListener('pointerdown', function(){
+    longFired = false;
+    clearPress();
+    pressTimer = window.setTimeout(function(){
+      longFired = true;
+      pressTimer = null;
+      tightHug();
+    }, 560);
+  });
+  stage.addEventListener('pointerup', clearPress);
+  stage.addEventListener('pointerleave', clearPress);
+  stage.addEventListener('pointercancel', clearPress);
+  stage.addEventListener('click', function(e){
+    e.preventDefault();
+    if (longFired) { longFired = false; return; }
+    hug();
+  });
+  stage.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); hug(); }
+  });
+
+  if (location.hash === '#letter') { openLetter(); }
+})();
+</script>
+</body>
+</html>
